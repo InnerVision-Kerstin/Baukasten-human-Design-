@@ -810,27 +810,120 @@ const FONT_URLS = {"Lato-Regular": "https://cdn.jsdelivr.net/npm/@fontsource/lat
     // ---------- Aminosäuren Seite ----------
     aminoPage() {
       const ch = this.chart, M = this.map;
-      const p = this.newPage('Ernährung nach Human Design');
-      let y = this.header(p, 'Human Design und Ernährung', 'Deine Aminosäuren');
-      y += 22;
-      y = this.para(p, 'Jedem Tor ist eine Aminosäure zugeordnet. Hier siehst du, wie oft jede Aminosäure in deinen 26 Aktivierungen vorkommt, und welche in deiner Sonne und in deinem Inkarnationskreuz stehen.', ML, y, CW, this.F.pfi, 10.5, C.text, 1.5) + 8;
-      const count = {};
-      ['P', 'D'].forEach(s => this.HD.PLANETS.forEach(k => { const a = M.amino[ch[s][k].gate] || '-'; const n = a === '-' ? 'Stopcodon' : a; count[n] = (count[n] || 0) + 1; }));
-      y = this.bar(p, 'Sonne und Inkarnationskreuz', y);
+      const AM = {
+        Isoleucin: ['e', 'Energie, Blutzucker, Muskeln', 'Rind, Huhn, Lachs, Ei, Sojabohnen, Linsen, Kürbiskerne, Mandeln, Haferflocken'],
+        Leucin: ['e', 'Muskelaufbau, Regeneration', 'Rind, Huhn, Lachs, Ei, Sojabohnen, Linsen, Kürbiskerne, Mandeln, Haferflocken'],
+        Lysin: ['e', 'Immunsystem, Kollagen, Gewebeaufbau, Haut, Haare, Knochen', 'Rind, Huhn, Lachs, Ei, Sojabohnen, Linsen, Kürbiskerne'],
+        Methionin: ['e', 'Leber, Entgiftung, Methylierung, Haut und Haare', 'Ei, Rind, Huhn, Lachs, Sesam, Sonnenblumenkerne, Sojabohnen'],
+        Phenylalanin: ['e', 'Fokus, Motivation, Stimmung, Vorstufe von Tyrosin', 'Rind, Huhn, Lachs, Ei, Sojabohnen, Kürbiskerne, Mandeln, Linsen, Haferflocken'],
+        Threonin: ['e', 'Darmbarriere, Schleimhäute, Immunsystem, Verdauung', 'Rind, Huhn, Lachs, Ei, Sojabohnen, Linsen, Kürbiskerne, Mandeln'],
+        Tryptophan: ['e', 'Serotonin, Schlaf, Stimmung, Entspannung', 'Kürbiskerne, Sojabohnen, Huhn, Rind, Lachs, Ei, Mandeln, Linsen'],
+        Valin: ['e', 'Ausdauer, Energie, Nervensystem, Regeneration', 'Rind, Huhn, Lachs, Ei, Sojabohnen, Kürbiskerne, Mandeln, Linsen'],
+        Arginin: ['s', 'Durchblutung, Gefäße, Immunsystem, Wundheilung', 'Kürbiskerne, Erdnüsse, Sesam, Sojabohnen, Linsen, Huhn, Rind, Lachs'],
+        Histidin: ['s', 'Immunsystem, Magensäure, Blutbildung, Nervensystem', 'Rind, Huhn, Thunfisch, Lachs, Sojabohnen, Kürbiskerne, Linsen'],
+        Cystein: ['s', 'Entgiftung, Haut, Haare, Nägel, Leber', 'Parmesan, Schweinefleisch, Huhn, Ei, Sonnenblumenkerne, Haferflocken, Brokkoli'],
+        Tyrosin: ['s', 'Fokus, Antrieb, Hormone, Schilddrüse', 'Parmesan, Rind, Huhn, Lachs, Ei, Sojabohnen, Kürbiskerne, Erdnüsse'],
+        Glycin: ['s', 'Schlaf, Beruhigung, Kollagen, Nervensystem', 'Knochenbrühe, Gelatine, Rind, Huhn, Lachs, Kürbiskerne, Sesam'],
+        Prolin: ['s', 'Kollagen, Haut, Bindegewebe, Gelenke', 'Knochenbrühe, Gelatine, Parmesan, Rind, Huhn, Ei, Lachs, Sojabohnen'],
+        Alanin: ['n', 'Blutzucker, Energie, Muskelstoffwechsel'],
+        Asparagin: ['n', 'Nervensystem, Zellstoffwechsel'],
+        Asparaginsäure: ['n', 'Energie, Nervensystem'],
+        Glutamin: ['n', 'Darm, Regeneration, Immunsystem'],
+        Glutaminsäure: ['n', 'Gehirn, Konzentration'],
+        Serin: ['n', 'Gehirn, Nervensystem, Zellmembranen']
+      };
+      const SEMI_WHEN = { Arginin: 'bei Stress, Infekten und Sport', Histidin: 'bei Stress, Infekten und Sport', Cystein: 'bei Kindern und Schwangeren', Tyrosin: 'bei Kindern und Schwangeren', Glycin: 'bei mehr Bedarf an Kollagen und Regeneration', Prolin: 'bei mehr Bedarf an Kollagen und Regeneration' };
       const am = g => { const a = M.amino[g]; return !a || a === '-' ? 'Stopcodon' : a; };
-      y = this.leadPara(p, 'Bewusste Sonne.', `Tor ${ch.P['Sonne'].gate}, ${am(ch.P['Sonne'].gate)}`, ML, y, CW, 10);
-      y = this.leadPara(p, 'Kreuz.', ch.cross.gates.map(g => `Tor ${g} ${am(g)}`).join(' · '), ML, y, CW, 10) + 8;
-      y = this.bar(p, 'Deine Strichliste', y);
-      Object.entries(count).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).forEach(([n, c]) => {
+      const count = {}, gatesOf = {};
+      ['P', 'D'].forEach(s => this.HD.PLANETS.forEach(k => { const g = ch[s][k].gate, n = am(g); count[n] = (count[n] || 0) + 1; (gatesOf[n] = gatesOf[n] || new Set()).add(g); }));
+      const foot = 'Deine Aminosäuren';
+      let p = this.newPage(foot), y;
+      const need = (h) => { if (y + h > H - 60) { p = this.newPage(foot); y = 60; } };
+      y = this.header(p, 'Human Design und Ernährung', 'Deine Aminosäuren') + 22;
+      y = this.para(p, 'Jedem Tor ist eine Aminosäure zugeordnet. Hier siehst du, welche Aminosäuren in deinem Chart stehen, welche dein Körper selbst herstellen kann, wo Lebensmittel dich unterstützen können und welche bei dir ganz fehlen.', ML, y, CW, this.F.pfi, 10.5, C.text, 1.5) + 8;
+
+      // Sonne und Kreuz
+      y = this.bar(p, 'Deine Sonne und dein Inkarnationskreuz', y);
+      const label = { e: 'essentiell, kommt über das Essen', s: 'semi essentiell, je nach Situation', n: 'stellt dein Körper selbst her' };
+      ch.cross.gates.forEach((g, i) => {
+        const n = am(g), d = AM[n];
+        need(32);
+        const lead = (i === 0 ? 'Bewusste Sonne' : ['', 'Bewusste Erde', 'Unbewusste Sonne', 'Unbewusste Erde'][i]) + `, Tor ${g}.`;
+        y = this.leadPara(p, lead, n === 'Stopcodon' ? 'Stopcodon, hier wird keine Aminosäure gebildet. Es ist das Satzzeichen am Ende der Eiweißkette.' : `${n}, ${label[d[0]]}. Wichtig für ${d[1]}.`, ML, y, CW, 10);
+      });
+      y += 8;
+
+      // Strichliste
+      need(60);
+      y = this.bar(p, 'Deine Strichliste aus 26 Aktivierungen', y);
+      const order = Object.entries(count).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+      order.forEach(([n, c]) => {
+        need(18);
+        const d = AM[n], tag = n === 'Stopcodon' ? '' : { e: 'essentiell', s: 'semi essentiell', n: 'selbst hergestellt' }[d[0]];
         this.T(p, n, ML + 8, y, this.F.reg, 10);
-        for (let i = 0; i < c; i++) this.rect(p, ML + 140 + i * 9, y - 9, 2.2, 11, C.accent);
-        this.T(p, String(c), ML + 140 + c * 9 + 8, y, this.F.bold, 9, C.muted);
+        for (let i = 0; i < c; i++) this.rect(p, ML + 130 + i * 9, y - 9, 2.2, 11, C.accent);
+        this.T(p, String(c), ML + 130 + c * 9 + 6, y, this.F.bold, 9, C.muted);
+        this.T(p, tag, ML + 260, y, this.F.ital, 9, C.muted);
         y += 17;
       });
-      const all = [...new Set(Object.values(M.amino).filter(a => a !== '-'))];
-      const missing = all.filter(a => !count[a]).sort();
+      y += 8;
+
+      // Essentiell, das Stärkste über Lebensmittel
+      const ess = order.filter(([n]) => AM[n] && AM[n][0] === 'e');
+      need(80);
+      y = this.bar(p, 'Essentiell, diese holst du dir über das Essen', y);
+      y = this.para(p, 'Diese Aminosäuren kann dein Körper nicht selbst herstellen. Die, die in deinem Chart am häufigsten stehen, dürfen in deinem Essen gut vertreten sein. Achte dabei auf deinen Supersinn und auf das, was dir schmeckt.', ML, y, CW, this.F.reg, 9.5, C.text, 1.45) + 4;
+      ess.forEach(([n, c]) => {
+        const lines = wrap('Steckt viel in ' + AM[n][2] + '.', this.F.reg, 9.5, CW - 14);
+        need(30 + lines.length * 13.5);
+        y = this.leadPara(p, `${n}, ${c} mal.`, 'Wichtig für ' + AM[n][1] + '.', ML, y, CW, 10);
+        lines.forEach(l => { this.T(p, l, ML + 14, y, this.F.reg, 9.5, C.muted); y += 13.5; });
+        y += 5;
+      });
+      y += 4;
+
+      // Semi essentiell
+      const semi = order.filter(([n]) => AM[n] && AM[n][0] === 's');
+      if (semi.length) {
+        need(70);
+        y = this.bar(p, 'Semi essentiell, Unterstützung wenn es gebraucht wird', y);
+        y = this.para(p, 'Diese stellt dein Körper meistens selbst her. In bestimmten Zeiten reicht das nicht, dann können Lebensmittel helfen.', ML, y, CW, this.F.reg, 9.5, C.text, 1.45) + 4;
+        semi.forEach(([n, c]) => {
+          const lines = wrap('Steckt viel in ' + AM[n][2] + '.', this.F.reg, 9.5, CW - 14);
+          need(30 + lines.length * 13.5);
+          y = this.leadPara(p, `${n}, ${c} mal.`, `Wichtig für ${AM[n][1]}. Mehr Bedarf ${SEMI_WHEN[n]}.`, ML, y, CW, 10);
+          lines.forEach(l => { this.T(p, l, ML + 14, y, this.F.reg, 9.5, C.muted); y += 13.5; });
+          y += 5;
+        });
+        y += 4;
+      }
+
+      // nicht essentiell
+      const non = order.filter(([n]) => AM[n] && AM[n][0] === 'n');
+      if (non.length) {
+        need(60);
+        y = this.bar(p, 'Selbst hergestellt, hier brauchst du nichts extra', y);
+        non.forEach(([n, c]) => { need(18); y = this.leadPara(p, `${n}, ${c} mal.`, 'Wichtig für ' + AM[n][1] + '. Das macht dein Körper selbst.', ML, y, CW, 10); });
+        y += 8;
+      }
+
+      // fehlend
+      const missing = Object.keys(AM).filter(n => !count[n]);
+      need(60);
+      y = this.bar(p, 'Ganz fehlend in deinem Chart', y);
+      if (!missing.length) y = this.para(p, 'Bei dir fehlt keine einzige Aminosäure.', ML, y, CW, this.F.reg, 10);
+      else {
+        y = this.para(p, 'Diese Aminosäuren stehen in keinem deiner Tore. Das heißt nicht, dass dir etwas fehlt. Schau dir die Tore dazu an, vielleicht geht dir dabei ein Licht auf.', ML, y, CW, this.F.reg, 9.5, C.text, 1.45) + 4;
+        missing.forEach(n => {
+          const gs = Object.entries(M.amino).filter(([, a]) => a === n).map(([g]) => `Tor ${g} ${(M.gateKey[g] || [''])[0]}`).join(', ');
+          const kind = { e: 'Essentiell, kommt über das Essen', s: 'Semi essentiell', n: 'Stellt dein Körper selbst her' }[AM[n][0]];
+          need(34);
+          y = this.leadPara(p, n + '.', `${kind}. ${gs}.`, ML, y, CW, 10);
+        });
+      }
       y += 6;
-      y = this.leadPara(p, 'Ganz fehlend.', missing.length ? missing.join(', ') : 'keine', ML, y, CW, 10);
+      need(110);
+      this.tip(p, 'Wichtig.', 'Das hier ist keine Diagnose und kein Ersatz für ärztlichen Rat. Wenn du wissen willst, wie es um deine Aminosäuren wirklich steht, kann eine Ärztin ein Aminogramm machen. Bevor du Aminosäuren als Nahrungsergänzung nimmst, sprich mit deiner Ärztin, vor allem bei Medikamenten, zum Beispiel Arginin bei Blutdrucksenkern oder Tryptophan bei Antidepressiva, und bei Nierenerkrankungen.', y);
     }
 
     // ---------- Pfeil durch L und R ersetzen (Gesundheit) ----------
@@ -1008,7 +1101,7 @@ const GROUPS = [
   ['Körper und Ernährung', [
     ['gesundheit', 'book', 'Gesundheit, Körper und Tore', 'Typ, unbewusster Mars, Zentren, ihre Tore, Schaltkreise, Sinne', false],
     ['essen', 'gen', 'Deine Art zu essen', 'Erklärseite, ihre Seite in L und R, Supersinn', false],
-    ['amino', 'gen', 'Deine Aminosäuren', 'Strichliste aus ihren 26 Aktivierungen, Sonne und Kreuz', false],
+    ['amino', 'gen', 'Deine Aminosäuren', 'Sonne und Kreuz, Strichliste, was über das Essen kommt, was der Körper selbst macht, was fehlt', false],
     ['ernaehrung', 'full', 'Ernährungsskript ganz', 'Aminosäuren und Ernährung, 33 Seiten. Im PDF steht nur für den persönlichen Gebrauch', false]
   ]],
   ['Below the Line', [
@@ -1049,7 +1142,7 @@ const GIFTS = [
   ['variablen', 'Deine Variablen', 'L und R, Farben, Supersinn auf einer Seite', false],
   ['gestirneTore', 'Deine Gestirne und ihre Tore', 'Jedes Gestirn mit Tor und markierter Linie, Mondknoten nach Lebenshälften', false],
   ['gestirne', 'Arbeitsblätter Gestirne', 'Schon mit ihren Toren ausgefüllt', false],
-  ['amino', 'Deine Aminosäuren', 'Strichliste aus ihren Aktivierungen', false],
+  ['amino', 'Deine Aminosäuren', 'Was sie über das Essen holt, was ihr Körper selbst macht, was fehlt', false],
   ['fear', 'Deine Angsttore', 'Nur ihre aktivierten Angsttore', false]
 ];
 const CYCLE = ['salbei', 'sonne', 'blau'];
