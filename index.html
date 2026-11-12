@@ -828,7 +828,7 @@ const FONT_URLS = {"Lato-Regular": "https://cdn.jsdelivr.net/npm/@fontsource/lat
         this.TC(p, n, ML + cw4 * i + cw4 / 2, y + 54, this.F.reg, 8.5, C.muted);
       });
       y += 76;
-      y = this.para(p, 'Jede Variable steht auf L oder R. L heißt aktiv und gezielt, R heißt aufnehmend und offen. Beides ist gleich gut, es zeigt nur, wie du funktionierst.', ML, y, CW, this.F.reg, 9.5, C.muted, 1.45) + 10;
+      y = this.para(p, 'Jeder Buchstabe ist ein L für links oder ein R für rechts. L heißt, du gehst aktiv und gezielt vor. R heißt, du nimmst auf und lässt kommen. Beides ist gleich gut, es zeigt nur, wie du funktionierst.', ML, y, CW, this.F.reg, 9.5, C.muted, 1.45) + 10;
 
       const section = (kicker, title, sub) => {
         need(120);
@@ -847,7 +847,7 @@ const FONT_URLS = {"Lato-Regular": "https://cdn.jsdelivr.net/npm/@fontsource/lat
 
       // Essen
       const dS = ch.D['Sonne'], code = v.dSonne + dS.color, et = (M.essenText || {})[code] || {};
-      section('Dein Essen', `${code} · ${et.title || ''}`, 'so nimmt dein Körper Nahrung am besten auf');
+      section('Dein Essen', et.title || '', 'so isst du am besten');
       lp(v.dSonne === 'L' ? 'L, links.' : 'R, rechts.', BTL.seite.ernaehrung[side(v.dSonne)]);
       lp('So isst du gern.', et.essen);
       lp('Was dein Bauch braucht.', et.bauch);
@@ -855,18 +855,18 @@ const FONT_URLS = {"Lato-Regular": "https://cdn.jsdelivr.net/npm/@fontsource/lat
       y += 6;
       // Supersinn
       const ss = BTL.supersinn[dS.tone];
-      section('Dein stärkster Sinn', `Supersinn · ${ss.name}`);
-      lp(`Ton ${dS.tone}.`, ss.text);
+      section('Dein stärkster Sinn', ss.name, 'so nimmst du am meisten wahr');
+      lp('Dein Supersinn.', ss.text);
       y += 6;
       // Lernen
       const dk = BTL.denken[ch.P['Sonne'].tone];
       section('Lernen und Denken', 'So lernst du gut');
       lp('Beim Lernen.', et.lernen);
-      lp('Wie du verarbeitest.', `${dk.name}. ${dk.text}`);
+      lp('Wie du verarbeitest.', dk.text);
       y += 6;
       // Umgebung
       const dK = ch.D['Nordknoten'], um = BTL.umgebung[dK.color];
-      section('Deine Umgebung', `Farbe ${dK.color} · ${um.name}`, 'hier fühlst du dich wohl');
+      section('Deine Umgebung', um.name, 'hier fühlst du dich wohl');
       lp(v.dKnoten === 'L' ? 'L, links.' : 'R, rechts.', BTL.seite.umgebung[side(v.dKnoten)]);
       lp('Was dir guttut.', um.text);
       lp(`Bei dir mit ${v.dKnoten}.`, um[side(v.dKnoten)]);
@@ -874,28 +874,27 @@ const FONT_URLS = {"Lato-Regular": "https://cdn.jsdelivr.net/npm/@fontsource/lat
       y += 6;
       // Beziehung
       const bz = BTL.beziehung[dK.tone];
-      section('Du und die Menschen', `So gehst du in Beziehung · ${bz.name}`);
-      lp(`Ton ${dK.tone}.`, bz.text);
+      section('Du und die Menschen', bz.name, 'so gehst du in Beziehung');
+      lp('In Beziehung.', bz.text);
       y += 6;
       // Motivation
       const pS = ch.P['Sonne'], mo = BTL.motivation[pS.color];
-      section('Was dich antreibt', `Farbe ${pS.color} · ${mo.name}`, 'der Grund hinter dem, was du tust');
+      section('Was dich antreibt', mo.name, 'der Grund hinter dem, was du tust');
       lp(v.pSonne === 'L' ? 'L, links.' : 'R, rechts.', BTL.seite.motivation[side(v.pSonne)]);
       lp('Dein Antrieb.', mo.text);
       lp(`Bei dir mit ${v.pSonne}.`, mo[side(v.pSonne)]);
       y += 6;
       // Sichtweise
       const pK = ch.P['Nordknoten'], si = BTL.sicht[pK.color], se = BTL.sehen[pK.tone];
-      section('Wie du die Welt siehst', `Farbe ${pK.color} · ${si.name}`, 'darauf fällt dein Blick von selbst');
+      section('Wie du die Welt siehst', si.name, 'darauf fällt dein Blick von selbst');
       lp(v.pKnoten === 'L' ? 'L, links.' : 'R, rechts.', BTL.seite.sicht[side(v.pKnoten)]);
       lp('Dein Blick.', si.text);
       lp(`Bei dir mit ${v.pKnoten}.`, si[side(v.pKnoten)]);
-      lp('Worauf du schaust.', `${se.name}. ${se.text}`);
+      lp('Worauf du schaust.', se.text);
       y += 4;
       const src = [['Ernährung', 'unbewusste Sonne', dS], ['Umgebung', 'unbewusster Mondknoten', dK], ['Motivation', 'bewusste Sonne', pS], ['Sichtweise', 'bewusster Mondknoten', pK]]
         .map(([n, w, a]) => `${n} aus ${w}, Tor ${a.gate}.${a.line}, Farbe ${a.color}, Ton ${a.tone}, Base ${a.base}`).join(' · ');
-      { const nh = wrap('Für Neugierige. ' + src + '.', this.F.reg, 7.5, CW).length * 10.5 + 8, th = wrap('Mein Tipp für dich. Such dir eine Sache aus, die dich am meisten anspricht, und probier sie zwei, drei Wochen aus. Beobachte, wie sich dein Bauch, deine Energie und dein Schlaf verändern. Dein Körper zeigt dir, was stimmt.', this.F.reg, 9.5, CW - 30).length * 14.5 + 18; if (y + nh + th > H - 48) { p = this.newPage(foot); y = 60; } }
-      y = this.para(p, 'Für Neugierige. ' + src + '.', ML, y, CW, this.F.reg, 7.5, C.muted, 1.4) + 8;
+      need(90);
       this.tip(p, 'Mein Tipp für dich.', 'Such dir eine Sache aus, die dich am meisten anspricht, und probier sie zwei, drei Wochen aus. Beobachte, wie sich dein Bauch, deine Energie und dein Schlaf verändern. Dein Körper zeigt dir, was stimmt.', y);
     }
 
@@ -1327,15 +1326,15 @@ const GROUPS = [
     ['ernaehrung', 'full', 'Ernährungsskript ganz', 'Aminosäuren und Ernährung, 33 Seiten. Im PDF steht nur für den persönlichen Gebrauch', false]
   ]],
   ['Below the Line', [
-    ['variablen', 'gen', 'Deine Variablen', 'Einfach erklärt, Essen, Lernen, Umgebung, Menschen, Antrieb, Sichtweise', false],
-    ['basen', 'book', 'Die Basen, Töne und Farben', 'Ihre Töne und Farben aus dem Buch', false]
+    ['variablen', 'gen', 'Deine Variablen, einfach erklärt', 'Für Anfänger. Essen, Supersinn, Lernen, Umgebung, Menschen, Antrieb, Sichtweise', false]
   ]],
   ['Gestirne', [
     ['gestirneTore', 'gen', 'Deine Gestirne und ihre Tore', 'Jedes Gestirn mit Tor, Thema und allen sechs Linien, ihre Linie markiert, mit Licht und Schatten', false],
     ['gestirne', 'book', 'Arbeitsblätter Gestirne', 'Zum Ausfüllen, bei jedem Planeten stehen schon ihre Tore mit Linie und Stichworten', false]
   ]],
   ['Nur für dich', [
-    ['activations', 'part', 'Aktivierungen', 'Gestirne Tabelle mit Farbe, Ton und Base, Zentren, Kanäle. Nicht für die Kundin', false, true]
+    ['activations', 'part', 'Aktivierungen', 'Gestirne Tabelle mit Farbe, Ton und Base, Zentren, Kanäle. Nicht für die Kundin', false, true],
+    ['basen', 'book', 'Basenbuch, Fachseiten', 'Deine Unterlage zum Nachschlagen, Farben, Töne und Basen. Nicht für die Kundin', false, true]
   ]]
 ];
 const ALLKEYS = GROUPS.flatMap(g => g[1].map(m => m[0]));
@@ -1361,7 +1360,7 @@ function fillTZ() {
 
 const GIFTS = [
   ['essen', 'Deine Art zu essen', 'Erklärseite, ihre Seite in L und R, Supersinn', true],
-  ['variablen', 'Deine Variablen', 'Einfach erklärt, Essen, Lernen, Umgebung, Menschen, Antrieb, Sichtweise', false],
+  ['variablen', 'Deine Variablen, einfach erklärt', 'Für Anfänger. Essen, Supersinn, Lernen, Umgebung, Menschen, Antrieb, Sichtweise', false],
   ['gestirneTore', 'Deine Gestirne und ihre Tore', 'Jedes Gestirn mit Tor und markierter Linie, Mondknoten nach Lebenshälften', false],
   ['gestirne', 'Arbeitsblätter Gestirne', 'Schon mit ihren Toren ausgefüllt', false],
   ['energie', 'Dein Energieformat', 'Zucker, Eiweiß oder Kohlenhydrate, aus ihren Schaltkreisen', false],
