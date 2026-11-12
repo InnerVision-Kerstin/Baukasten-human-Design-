@@ -1341,7 +1341,7 @@ async function addBooks(files) {
     if (k) await idbPut(k, buf); else unknown.push(f.name);
   }
   await bookOverview();
-  if (unknown.length) $('bookStatus').innerHTML += '<br>Nicht erkannt ' + unknown.join(', ') + '. Die Seitenzahl passt zu keinem Buch.';
+  if (unknown.length) $('bookStatus').innerHTML += '<br>Übersprungen, weil das keine Bücher sind ' + unknown.join(', ') + '. Das macht nichts.';
 }
 
 async function runGift() {
