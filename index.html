@@ -388,7 +388,7 @@ const FONT_URLS = {"Lato-Regular": "https://cdn.jsdelivr.net/npm/@fontsource/lat
     tsa: 'Typ, Strategie und Autorität', profil: 'Dein Profil', zentren: 'Die neun Zentren', kanaele: 'Die 36 Kanäle',
     tore: 'Die Tore und ihre Linien', toreKatrin: 'Die Bedeutung der Tore und Linien', marketing: 'Deine Marketing Tore',
     gesundheit: 'Human Design und Gesundheit', basen: 'Die Basen, Töne und Farben', gestirne: 'Deine Gestirne',
-    ernaehrung: 'Ernährung nach Human Design', essen: 'Deine Art zu essen', amino: 'Deine Aminosäuren', variablen: 'Deine Variablen', gestirneTore: 'Deine Gestirne und ihre Tore'
+    ernaehrung: 'Ernährung nach Human Design', essen: 'Deine Art zu essen', amino: 'Deine Aminosäuren', variablen: 'Deine Variablen', gestirneTore: 'Deine Gestirne und ihre Tore', energie: 'Dein Energieformat'
   };
   const STRATEGY = { 'Generator': 'Reagieren', 'Manifestierender Generator': 'Reagieren und dann informieren', 'Projektor': 'Auf die Einladung warten', 'Manifestor': 'Informieren', 'Reflektor': 'Mit dem Mond leben' };
   const AUTH_LABEL = { Emotional: 'Emotionale Autorität', Sakral: 'Bauchautorität', Milz: 'Milzautorität', Ego: 'Egoautorität', Selbst: 'Selbstautorität', Mental: 'Mentale Autorität', Mond: 'Mondautorität' };
@@ -926,6 +926,52 @@ const FONT_URLS = {"Lato-Regular": "https://cdn.jsdelivr.net/npm/@fontsource/lat
       this.tip(p, 'Wichtig.', 'Das hier ist keine Diagnose und kein Ersatz für ärztlichen Rat. Wenn du wissen willst, wie es um deine Aminosäuren wirklich steht, kann eine Ärztin ein Aminogramm machen. Bevor du Aminosäuren als Nahrungsergänzung nimmst, sprich mit deiner Ärztin, vor allem bei Medikamenten, zum Beispiel Arginin bei Blutdrucksenkern oder Tryptophan bei Antidepressiva, und bei Nierenerkrankungen.', y);
     }
 
+    // ---------- Energieformat aus den Schaltkreisen ----------
+    energyCalc() {
+      const ch = this.chart;
+      const F = [
+        ['Wissen', 'Zucker', 'Schleckermaul', ['24-61', '23-43', '1-8', '2-14', '3-60', '12-22', '39-55', '28-38', '20-57'], [24, 61, 23, 43, 1, 8, 2, 14, 3, 60, 12, 22, 39, 55, 28, 38, 20, 57],
+          'Wissen entsteht in Schüben, plötzlich und unvorhersehbar. Diese Energie will Neues erfahren, und ihr wird langweilig, wenn nichts passiert.',
+          'Bist du in diesem Schaltkreis stark definiert, bist du wahrscheinlich ein Schleckermaul. Für einen kurzen Energieschub brauchst du Zucker, gern in Form von Obst.'],
+        ['Verstehen', 'Eiweiß', 'Fleischtiger', ['4-63', '17-62', '16-48', '7-31', '5-15', '9-52', '18-58'], [4, 63, 17, 62, 16, 48, 7, 31, 5, 15, 9, 52, 18, 58],
+          'Verstehen entsteht durch Konzentration. Diese Energie ist logisch und zielorientiert und braucht Fokus.',
+          'Bist du in diesem Schaltkreis stark definiert, bist du wahrscheinlich ein Fleischtiger. Eiweiß gibt dir die Kraft dafür, ob aus Fleisch, Fisch, Eiern oder Hülsenfrüchten.'],
+        ['Sinnfinden', 'Kohlenhydrate', 'Brotjunkie', ['47-64', '11-56', '35-36', '13-33', '29-46', '42-53', '30-41'], [47, 64, 11, 56, 35, 36, 13, 33, 29, 46, 42, 53, 30, 41],
+          'Sinn entsteht erst, wenn man durchhält. Diese Energie ist gefühlvoll und läuft in Zyklen, sie braucht Ausdauer und Reserven.',
+          'Bist du in diesem Schaltkreis stark definiert, bist du wahrscheinlich ein Brotjunkie. Kohlenhydrate geben dir die Kraft, Erfahrungen über längere Zeit durchzuziehen.']
+      ];
+      const chs = new Set(ch.channels.map(([a, b]) => a + '-' + b));
+      return F.map(([name, fuel, nick, cl, gl, txt, you]) => {
+        const c = cl.filter(k => chs.has(k)), g = gl.filter(x => ch.gates[x]);
+        return { name, fuel, nick, txt, you, channels: c, gates: g, score: c.length * 2 + g.length };
+      });
+    }
+    energyPage() {
+      const r = this.energyCalc();
+      const max = Math.max(...r.map(x => x.score));
+      const top = r.filter(x => x.score === max && max > 0);
+      const p = this.newPage('Dein Energieformat');
+      let y = this.header(p, 'Schaltkreise und Ernährung', 'Dein Energieformat') + 22;
+      y = this.para(p, 'Die Kanäle und Tore in deinem Chart gehören zu Schaltkreisen. Jeder Schaltkreis hat seine eigene Art von Energie und braucht dafür einen bestimmten Treibstoff. Hier siehst du, wo bei dir am meisten los ist.', ML, y, CW, this.F.pfi, 10.5, C.text, 1.5) + 10;
+      this.rect(p, ML, y, CW, 58, C.header, 9);
+      this.spaced(p, top.length > 1 ? 'BEI DIR GLEICH STARK' : 'DEIN STÄRKSTER TREIBSTOFF', W / 2, y + 18, this.F.pop, 6.5, C.accent, 2);
+      this.TC(p, top.length ? top.map(x => x.fuel).join(' und ') : 'kein Schwerpunkt', W / 2, y + 44, this.F.pf, 21, C.text);
+      y += 76;
+      const full = Math.max(1, max);
+      r.forEach(x => {
+        y = this.bar(p, `${x.name} · ${x.fuel} · ${x.nick}`, y);
+        this.T(p, 'Stärke', ML + 8, y, this.F.reg, 9, C.muted);
+        this.rect(p, ML + 50, y - 8, 300, 9, C.bar, 4);
+        if (x.score) this.rect(p, ML + 50, y - 8, 300 * x.score / full, 9, C.accent, 4);
+        y += 16;
+        y = this.leadPara(p, 'Deine Kanäle.', x.channels.length ? x.channels.map(k => k.replace('-', '/')).join(', ') : 'keiner', ML, y, CW, 9.5);
+        y = this.leadPara(p, 'Deine Tore.', x.gates.length ? x.gates.join(', ') : 'keines', ML, y, CW, 9.5);
+        y = this.para(p, x.txt, ML, y + 2, CW, this.F.reg, 9.5, C.text, 1.45);
+        y = this.para(p, x.you, ML, y, CW, this.F.ital, 9.5, C.muted, 1.45) + 10;
+      });
+      this.tip(p, 'Mein Tipp für dich.', 'Oft erkennst du dich sofort wieder, an deiner Lust auf Süßes, auf ein gutes Stück Fleisch oder auf frisches Brot. Ein Kanal zählt bei der Stärke doppelt, ein einzelnes Tor einfach. Hör trotzdem auf deinen Körper, er weiß es am besten.', y);
+    }
+
     // ---------- Pfeil durch L und R ersetzen (Gesundheit) ----------
     patchEssenIntro(p) {
       this.rect(p, 66, 262, 466, 40, BOOKC.bg);
@@ -1008,6 +1054,7 @@ const FONT_URLS = {"Lato-Regular": "https://cdn.jsdelivr.net/npm/@fontsource/lat
         case 'variablen': return this.variablesPage();
         case 'gestirneTore': return this.planetGatesPages();
         case 'amino': return this.aminoPage();
+        case 'energie': return this.energyPage();
         case 'gestirne': {
           const pages = await this.addBookPages(key, M.gestirne.all);
           if (full) return pages;
@@ -1038,7 +1085,7 @@ const FONT_URLS = {"Lato-Regular": "https://cdn.jsdelivr.net/npm/@fontsource/lat
   }
   const range = (a, b) => Array.from({ length: b - a + 1 }, (_, i) => a + i);
 
-  const ORDER = ['tsa', 'profil', 'zentren', 'kanaele', 'tore', 'toreKatrin', 'marketing', 'gesundheit', 'essen', 'amino', 'ernaehrung', 'variablen', 'basen', 'gestirneTore', 'gestirne'];
+  const ORDER = ['tsa', 'profil', 'zentren', 'kanaele', 'tore', 'toreKatrin', 'marketing', 'gesundheit', 'essen', 'energie', 'amino', 'ernaehrung', 'variablen', 'basen', 'gestirneTore', 'gestirne'];
 
   // Eine Mappe
   async function buildMappe(o) {
@@ -1101,6 +1148,7 @@ const GROUPS = [
   ['Körper und Ernährung', [
     ['gesundheit', 'book', 'Gesundheit, Körper und Tore', 'Typ, unbewusster Mars, Zentren, ihre Tore, Schaltkreise, Sinne', false],
     ['essen', 'gen', 'Deine Art zu essen', 'Erklärseite, ihre Seite in L und R, Supersinn', false],
+    ['energie', 'gen', 'Dein Energieformat', 'Zucker, Eiweiß oder Kohlenhydrate, aus ihren Schaltkreisen', false],
     ['amino', 'gen', 'Deine Aminosäuren', 'Sonne und Kreuz, Strichliste, was über das Essen kommt, was der Körper selbst macht, was fehlt', false],
     ['ernaehrung', 'full', 'Ernährungsskript ganz', 'Aminosäuren und Ernährung, 33 Seiten. Im PDF steht nur für den persönlichen Gebrauch', false]
   ]],
@@ -1120,8 +1168,8 @@ const ALLKEYS = GROUPS.flatMap(g => g[1].map(m => m[0]));
 const PRESETS = [
   ['Große Mappe', 'Dein Human Design', ['cover', 'overview', 'fear', 'tsa', 'profil', 'zentren', 'kanaele', 'tore']],
   ['Nur Angsttore', 'Deine Angsttore', ['cover', 'fear']],
-  ['Ernährung', 'Deine Ernährung nach Human Design', ['cover', 'essen', 'amino']],
-  ['Gesundheit und Ernährung', 'Dein Körper und deine Gesundheit', ['cover', 'overview', 'fear', 'gesundheit', 'essen', 'amino']],
+  ['Ernährung', 'Deine Ernährung nach Human Design', ['cover', 'essen', 'energie', 'amino']],
+  ['Gesundheit und Ernährung', 'Dein Körper und deine Gesundheit', ['cover', 'overview', 'fear', 'gesundheit', 'essen', 'energie', 'amino']],
   ['Business', 'Dein Human Design im Business', ['cover', 'overview', 'marketing']],
   ['Below the Line', 'Below the Line', ['cover', 'variablen', 'basen']]
 ];
@@ -1142,6 +1190,7 @@ const GIFTS = [
   ['variablen', 'Deine Variablen', 'L und R, Farben, Supersinn auf einer Seite', false],
   ['gestirneTore', 'Deine Gestirne und ihre Tore', 'Jedes Gestirn mit Tor und markierter Linie, Mondknoten nach Lebenshälften', false],
   ['gestirne', 'Arbeitsblätter Gestirne', 'Schon mit ihren Toren ausgefüllt', false],
+  ['energie', 'Dein Energieformat', 'Zucker, Eiweiß oder Kohlenhydrate, aus ihren Schaltkreisen', false],
   ['amino', 'Deine Aminosäuren', 'Was sie über das Essen holt, was ihr Körper selbst macht, was fehlt', false],
   ['fear', 'Deine Angsttore', 'Nur ihre aktivierten Angsttore', false]
 ];
