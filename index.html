@@ -74,7 +74,8 @@ details summary{cursor:pointer;font-size:13px;color:var(--acc);margin-top:12px}
   <div class="card" id="bookCard" style="margin-bottom:22px">
     <h2>Deine Bücher</h2>
     <div class="sub">Die Bücher liegen nicht im Internet. Wähl sie einmal von deinem Computer aus, alle elf PDFs auf einmal. Der Browser merkt sie sich auf diesem Gerät.</div>
-    <div class="btns"><label class="sec" style="display:inline-block;background:var(--text);color:#fff;border-radius:999px;padding:12px 20px;font-weight:700;cursor:pointer">Bücher auswählen<input id="bookFiles" type="file" accept="application/pdf" multiple style="display:none"></label></div>
+    <div class="btns"><label class="sec" style="display:inline-block;background:var(--text);color:#fff;border-radius:999px;padding:12px 20px;font-weight:700;cursor:pointer">Bücher auswählen<input id="bookFiles" type="file" accept="application/pdf" multiple style="display:none"></label><button id="bookExport" class="sec">Gespeicherte Bücher herunterladen</button><button id="bookClear" class="sec">Bücher hier löschen</button></div>
+    <div class="hint">Neue Fassung von einem Buch? Einfach wieder auf Bücher auswählen klicken und die neue Datei nehmen. Sie ersetzt die alte.</div>
     <div class="status" id="bookStatus"></div>
   </div>
 
@@ -831,18 +832,22 @@ const FONT_URLS = {"Lato-Regular": "https://cdn.jsdelivr.net/npm/@fontsource/lat
 
       const section = (kicker, title, sub) => {
         need(120);
-        this.rect(p, ML, y, CW, sub ? 50 : 40, C.bar, 8);
+        this.rect(p, ML, y, CW, 42, C.bar, 8);
         this.T(p, kicker.toUpperCase(), ML + 14, y + 14, this.F.pop, 6.5, C.accent);
-        this.T(p, title, ML + 14, y + 32, this.F.pf, 15, C.text);
-        if (sub) this.T(p, sub, ML + 14, y + 44, this.F.ital, 8.5, C.muted);
-        y += (sub ? 50 : 40) + 14;
+        this.T(p, title, ML + 14, y + 33, this.F.pf, 15, C.text);
+        if (sub) {
+          const x = ML + 14 + this.F.pf.widthOfTextAtSize(title, 15) + 10;
+          let sz = 10.5; while (x + this.F.ital.widthOfTextAtSize(sub, sz) > W - MR - 12 && sz > 8) sz -= 0.5;
+          this.T(p, sub, x, y + 33, this.F.ital, sz, C.text);
+        }
+        y += 42 + 14;
       };
       const lp = (lead, txt) => { if (!txt) return; need(30); y = this.leadPara(p, lead, txt, ML, y, CW, 10.5) + 4; };
       const side = x => x === 'L' ? 'L' : 'R';
 
       // Essen
       const dS = ch.D['Sonne'], code = v.dSonne + dS.color, et = (M.essenText || {})[code] || {};
-      section('Dein Essen', `${code} · ${et.title || ''}`, 'Wie dein Körper Nahrung am besten aufnimmt');
+      section('Dein Essen', `${code} · ${et.title || ''}`, 'so nimmt dein Körper Nahrung am besten auf');
       lp(v.dSonne === 'L' ? 'L, links.' : 'R, rechts.', BTL.seite.ernaehrung[side(v.dSonne)]);
       lp('So isst du gern.', et.essen);
       lp('Was dein Bauch braucht.', et.bauch);
@@ -861,7 +866,7 @@ const FONT_URLS = {"Lato-Regular": "https://cdn.jsdelivr.net/npm/@fontsource/lat
       y += 6;
       // Umgebung
       const dK = ch.D['Nordknoten'], um = BTL.umgebung[dK.color];
-      section('Deine Umgebung', `Farbe ${dK.color} · ${um.name}`, 'Wo du dich wohlfühlst, gut entscheidest und gut verdaust');
+      section('Deine Umgebung', `Farbe ${dK.color} · ${um.name}`, 'hier fühlst du dich wohl');
       lp(v.dKnoten === 'L' ? 'L, links.' : 'R, rechts.', BTL.seite.umgebung[side(v.dKnoten)]);
       lp('Was dir guttut.', um.text);
       lp(`Bei dir mit ${v.dKnoten}.`, um[side(v.dKnoten)]);
@@ -874,14 +879,14 @@ const FONT_URLS = {"Lato-Regular": "https://cdn.jsdelivr.net/npm/@fontsource/lat
       y += 6;
       // Motivation
       const pS = ch.P['Sonne'], mo = BTL.motivation[pS.color];
-      section('Was dich antreibt', `Farbe ${pS.color} · ${mo.name}`, 'Der Grund hinter dem, was du tust');
+      section('Was dich antreibt', `Farbe ${pS.color} · ${mo.name}`, 'der Grund hinter dem, was du tust');
       lp(v.pSonne === 'L' ? 'L, links.' : 'R, rechts.', BTL.seite.motivation[side(v.pSonne)]);
       lp('Dein Antrieb.', mo.text);
       lp(`Bei dir mit ${v.pSonne}.`, mo[side(v.pSonne)]);
       y += 6;
       // Sichtweise
       const pK = ch.P['Nordknoten'], si = BTL.sicht[pK.color], se = BTL.sehen[pK.tone];
-      section('Wie du die Welt siehst', `Farbe ${pK.color} · ${si.name}`, 'Worauf dein Blick ganz von selbst fällt');
+      section('Wie du die Welt siehst', `Farbe ${pK.color} · ${si.name}`, 'darauf fällt dein Blick von selbst');
       lp(v.pKnoten === 'L' ? 'L, links.' : 'R, rechts.', BTL.seite.sicht[side(v.pKnoten)]);
       lp('Dein Blick.', si.text);
       lp(`Bei dir mit ${v.pKnoten}.`, si[side(v.pKnoten)]);
@@ -1500,6 +1505,22 @@ async function bookOverview() {
   for (const k of Object.values(BOOK_PAGES)) ((await idbGet(k)) ? have : miss).push(HDPdf.BOOKS[k]);
   $('bookStatus').innerHTML = miss.length ? `<b>${have.length} von 11 Büchern da.</b> Es fehlen noch ${miss.join(', ')}.` : '<b>Alle 11 Bücher sind da.</b> Du kannst loslegen.';
 }
+async function exportBooks() {
+  const names = { tsa: 'Typ_Strategie_Autoritaet', profil: 'Dein_Profil', zentren: 'Die_neun_Zentren', kanaele: 'Die_36_Kanaele', tore: 'Tore_und_Linien', toreKatrin: 'Die_Bedeutung_der_Tore_und_Linien', marketing: 'Marketing_Tore', gesundheit: 'Human_Design_und_Gesundheit', basen: 'Below_the_Line_Die_Basen', gestirne: 'Deine_Gestirne', ernaehrung: 'Ernaehrung_nach_Human_Design' };
+  let n = 0;
+  for (const k of Object.values(BOOK_PAGES)) {
+    const b = await idbGet(k); if (!b) continue;
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([b], { type: 'application/pdf' })); a.download = names[k] + '.pdf';
+    document.body.append(a); a.click(); a.remove(); n++;
+    await new Promise(r => setTimeout(r, 700));
+  }
+  $('bookStatus').textContent = n ? n + ' Bücher heruntergeladen. Der Browser fragt eventuell, ob er mehrere Dateien speichern darf.' : 'Hier sind noch keine Bücher gespeichert.';
+}
+async function clearBooks() {
+  const db = await idb();
+  await new Promise((res, rej) => { const t = db.transaction('books', 'readwrite'); t.objectStore('books').clear(); t.oncomplete = res; t.onerror = () => rej(t.error); });
+  await bookOverview();
+}
 async function addBooks(files) {
   const unknown = [];
   for (const f of files) {
@@ -1568,6 +1589,8 @@ async function run(sep) {
     $('mappe').disabled = $('einzeln').disabled = $('gift').disabled = true;
   };
   $('bookFiles').onchange = e => addBooks([...e.target.files]);
+  $('bookExport').onclick = exportBooks;
+  $('bookClear').onclick = () => { $('bookStatus').innerHTML = 'Wirklich alle Bücher aus diesem Browser löschen? <button id="bookClearYes" class="sec" style="padding:6px 14px">Ja, löschen</button>'; $('bookClearYes').onclick = clearBooks; };
   try { await bookOverview(); } catch (e) { $('bookStatus').textContent = 'Dieser Browser kann die Bücher nicht speichern.'; }
   try { if (window.claude && window.claude.use) DL = await window.claude.use('downloads'); } catch (e) {}
 })();
