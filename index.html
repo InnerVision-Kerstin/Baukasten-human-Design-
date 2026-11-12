@@ -82,18 +82,19 @@ details summary{cursor:pointer;font-size:13px;color:var(--acc);margin-top:12px}
     <div class="card">
       <h2>Geburtsdaten</h2>
       <label class="f">Name</label>
-      <input id="name" placeholder="z. B. Anna Muster">
+      <input id="name" autocomplete="off" placeholder="z. B. Anna Muster">
       <div class="row">
-        <div><label class="f">Geburtsdatum</label><input id="date" type="date"></div>
-        <div><label class="f">Uhrzeit</label><input id="time" type="time"></div>
+        <div><label class="f">Geburtsdatum</label><input id="date" type="date" autocomplete="off"></div>
+        <div><label class="f">Uhrzeit</label><input id="time" type="time" autocomplete="off"></div>
       </div>
       <label class="f">Geburtsort</label>
-      <input id="place" placeholder="z. B. Tulln an der Donau">
+      <input id="place" autocomplete="off" placeholder="z. B. Tulln an der Donau">
       <label class="f">Zeitzone am Geburtsort</label>
       <select id="tz"></select>
       <div class="hint">Sommerzeit wird automatisch berücksichtigt. Für Österreich, Deutschland und Schweiz einfach das Land wählen.</div>
       <div class="hint" id="utc"></div>
-      <div class="btns"><button id="calc">Chart berechnen</button></div>
+      <div class="btns"><button id="calc">Chart berechnen</button><button id="clear" class="sec">Kundin löschen</button></div>
+      <div class="hint">Alles wird nur hier in deinem Browser gerechnet. Name und Geburtsdaten werden nirgends hingeschickt und nicht gespeichert.</div>
     </div>
 
     <div class="card" id="out"><div class="empty">Hier erscheint das Chart, sobald du berechnest.</div></div>
@@ -1249,6 +1250,12 @@ async function run(sep) {
   $('mappe').onclick = () => run(false);
   $('einzeln').onclick = () => run(true);
   $('gift').onclick = runGift;
+  $('clear').onclick = () => {
+    ['name', 'date', 'time', 'place'].forEach(i => $(i).value = '');
+    CHART = null; $('utc').textContent = ''; $('status').textContent = ''; $('giftStatus').textContent = '';
+    $('out').innerHTML = '<div class="empty">Hier erscheint das Chart, sobald du berechnest.</div>';
+    $('mappe').disabled = $('einzeln').disabled = $('gift').disabled = true;
+  };
   $('bookFiles').onchange = e => addBooks([...e.target.files]);
   try { await bookOverview(); } catch (e) { $('bookStatus').textContent = 'Dieser Browser kann die Bücher nicht speichern.'; }
   try { if (window.claude && window.claude.use) DL = await window.claude.use('downloads'); } catch (e) {}
